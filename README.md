@@ -1,213 +1,171 @@
 # LDS-007 Linux LiDAR Radar
 
-A simple Python application for reading an **Ecovacs LDS-007 LiDAR** through a USB-to-UART adapter and displaying the scan as a live radar.
+Python app for reading an **Ecovacs LDS-007 LiDAR** through a USB-to-UART adapter and displaying a live radar view.
 
-The project is based on the reverse-engineered protocol from the [Ecovacs-LDS-007](https://github.com/IvoBiesdorf/Ecovacs-LDS-007) project.
+Protocol reference: [Ecovacs-LDS-007](https://github.com/IvoBiesdorf/Ecovacs-LDS-007)
 
 ## Hardware
 
-You need:
+Required:
 
 - Ecovacs LDS-007
 - CP2102 USB-to-UART adapter
 - Linux computer
 - Separate 5V power supply for the LDS-007
 
-### Power
+### Power Warning
 
 The LDS-007 must be powered from a **separate 5V supply**.
 
-**Do not power the LDS-007 through the CP2102.**
-
-The CP2102 is used only for UART communication.
+**Do not power the LDS-007 from the CP2102 adapter.**
 
 ### UART Wiring
 
 ```text
-LDS-007       CP2102
--------       ------
-TX       →    RX
-RX       ←    TX
-GND      ─    GND
+LDS-007   ->   CP2102
+TX        ->   RX
+RX        ->   TX
+GND       ->   GND
+```
 
-
- ## Requirements
+## Requirements
 
 - Linux
 - Python 3
 - Tkinter
 - PySerial
 
- Install Python and the required packages using your Linux distribution's package manager.
+Install PySerial (if needed):
 
- PySerial can also be installed with:
-
-```
+```bash
 python3 -m pip install pyserial
 ```
 
- Verify the dependencies:
+Verify dependencies:
 
-```
+```bash
 python3 -c "import tkinter, serial; print('Dependencies OK')"
 ```
 
- ## Find the Serial Port
+## Find the Serial Port
 
- Connect the CP2102 to the computer and check the available serial devices:
+List USB serial devices:
 
-```
+```bash
 ls /dev/ttyUSB*
 ```
 
- The CP2102 will typically appear as:
+Your adapter is usually:
 
-```
+```text
 /dev/ttyUSB0
 ```
 
- You can identify the adapter with:
+Identify the CP2102 in USB device list:
 
-```
+```bash
 lsusb
 ```
 
- Look for a Silicon Labs CP210x USB-to-UART device.
+Look for `Silicon Labs CP210x USB to UART Bridge`.
 
- ## Running
+## Run the App
 
- Run the application with:
-
-```
+```bash
 python3 lds007_radar.py
 ```
 
- The program communicates with the LDS-007 using:
+Default serial settings:
 
-```
+```text
 Baud rate: 115200
 Data bits: 8
 Parity:    None
 Stop bits: 1
+Device:    /dev/ttyUSB0
 ```
 
- The default serial device is:
+If your adapter appears on a different device path, update the serial port in `lds007_radar.py`.
 
-```
-/dev/ttyUSB0
-```
+## LiDAR Control Commands
 
- If your CP2102 appears as a different device, change the serial port in the Python program.
+Start command:
 
- ## Controls
-
- The radar window provides controls for starting and stopping the LiDAR.
-
- ### Start
-
- The LDS-007 start command is:
-
-```
+```text
 startlds$
 ```
 
- ### Stop
+Stop command:
 
- The LDS-007 stop command is:
-
-```
+```text
 stoplds$
 ```
 
- The application sends these commands when the **START** and **STOP** buttons are pressed.
+The UI sends these when you press **START** and **STOP**.
 
- ## Testing the Connection
+## Test from Terminal
 
- You can test the LiDAR directly from the Linux terminal.
+Start the LiDAR:
 
- Send the start command:
-
-```
+```bash
 printf 'startlds$' > /dev/ttyUSB0
 ```
 
- Then read the binary data:
+Read binary packets:
 
-```
+```bash
 cat /dev/ttyUSB0 | hexdump -C
 ```
 
- The LDS-007 data stream should contain packets beginning with:
+Expected packet prefix:
 
-```
+```text
 FA
 ```
 
- For example:
+Example stream:
 
-```
+```text
 fa eb da 73 ...
 fa ec da 73 ...
 fa ed da 73 ...
 ```
 
- ## Troubleshooting
+## Troubleshooting
 
- ### Permission Denied
+### Permission denied for `/dev/ttyUSB0`
 
- If you cannot access `/dev/ttyUSB0`, check its permissions:
-
-```
+```bash
 ls -l /dev/ttyUSB0
 ```
 
- The serial device will belong to a particular Linux group. Add your user to that group if necessary, then log out and back in.
+Add your user to the device's group, then log out and back in.
 
- ### No Serial Device
+### No serial device appears
 
- Check that the CP2102 is detected:
-
-```
+```bash
 lsusb
 ```
 
- Then check the kernel messages:
-
-```
+```bash
 dmesg | tail -30
 ```
 
- You should see the CP210x driver being attached to a `ttyUSB` device.
+You should see the CP210x driver attach to a `ttyUSB` device.
 
- ### No LiDAR Data
+### No LiDAR data
 
- Check:
+Check the following:
 
- - The LDS-007 has a **separate 5V power supply**
-- LDS-007 GND is connected to CP2102 GND
-- LDS-007 TX is connected to CP2102 RX
-- LDS-007 RX is connected to CP2102 TX
-- The correct `/dev/ttyUSB*` device is being used
-- The serial configuration is `115200 8N1`
+- LDS-007 has a separate 5V power supply
+- LDS-007 GND -> CP2102 GND
+- LDS-007 TX -> CP2102 RX
+- LDS-007 RX -> CP2102 TX
+- Correct `/dev/ttyUSB*` device is used
+- Serial settings are `115200 8N1`
 
- ### TX/RX Wiring
+## Reference
 
- The correct connection is:
+LDS-007 protocol docs:
 
-```
-LDS-007 TX  →  CP2102 RX
-LDS-007 RX  →  CP2102 TX
-LDS-007 GND →  CP2102 GND
-```
-
- Do not connect TX to TX or RX to RX.
-
- ## Reference
-
- LDS-007 protocol reference:
-
- https://github.com/IvoBiesdorf/Ecovacs-LDS-007
-
-```
-
-```
+- https://github.com/IvoBiesdorf/Ecovacs-LDS-007
