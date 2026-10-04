@@ -28,6 +28,8 @@ RX        ->   TX
 GND       ->   GND
 ```
 
+![LDS-007 to CP2102 wiring](images/Wiring.jpg)
+
 ## Requirements
 
 - Linux
@@ -74,6 +76,8 @@ Look for `Silicon Labs CP210x USB to UART Bridge`.
 ```bash
 python3 lds007_radar.py
 ```
+
+![LDS-007 radar GUI](images/screenshot_GUI.png)
 
 Default serial settings:
 
@@ -134,6 +138,16 @@ fa ed da 73 ...
 ## Troubleshooting
 
 ### Permission denied for `/dev/ttyUSB0`
+
+If you get a permission error, temporarily allow read/write access:
+
+```bash
+chmod 666 /dev/ttyUSB0
+```
+
+Example error:
+
+![Serial permission error](images/screenshot_ERROR.png)
 
 ```bash
 ls -l /dev/ttyUSB0
